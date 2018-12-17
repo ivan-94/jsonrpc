@@ -1,5 +1,5 @@
 /**
- * 符合拦截器
+ * 组合拦截器
  */
 /* tslint:disable:no-any */
 import { RPCInterceptor, JSONRPCRequest } from './type'

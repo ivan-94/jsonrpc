@@ -1,16 +1,14 @@
 {
   "name": "@gdjiami/jsonrpc",
-  "version": "2.0.1",
-  "description": "Jiami JSON RPC Client",
+  "version": "2.0.2",
+  "description": "JSON RPC Client",
   "main": "lib/index.js",
-  "module": "es/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "rimraf lib es",
-    "build:es6": "tsc -d --outDir ./lib --module CommonJS ",
     "build:es6module": "tsc -d --outDir ./es",
-    "build": "npm run build:es6 && npm run build:es6module",
+    "build": "npm run build:es6module",
     "lint": "tslint -c tslint.json \"src/**/*.ts?(x)\"",
     "prettier": "prettier --config .prettierrc --write \"src/**/*.ts?(x)\"",
     "precommit": "lint-staged"
@@ -27,12 +25,12 @@
   },
   "files": [
     "lib",
-    "es",
     "README.md",
     "LICENSE"
   ],
   "keywords": [
-    "jsonrpc"
+    "jsonrpc",
+    "jsonrpc2"
   ],
   "author": "ivan",
   "license": "MIT",

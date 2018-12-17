@@ -65,11 +65,19 @@ export default class JSONRPC {
 
   private rawRequest<R, P = {}>(
     request: JSONRPCRequest<P>,
-    shoudlExtraResult: boolean = false,
+    shouldExtraResult: boolean = false,
   ): Promise<R> {
     const req = new XMLHttpRequest()
-    req.open('POST', this.root)
-    const interceptors = shoudlExtraResult
+    let url = this.root
+    // 可以在控制台直接显示请求的方法
+    const query = `_m=${request.method}`
+    if (url.indexOf('?') === -1) {
+      url += '?' + query
+    } else {
+      url += '&' + query
+    }
+    req.open('POST', url)
+    const interceptors = shouldExtraResult
       ? [...this.preInterceptor, ...this.interceptor]
       : this.interceptor
     const fn = compose(interceptors)
@@ -94,7 +102,12 @@ export default class JSONRPC {
                 )
               } else if (resp.id !== request.id) {
                 reject(
-                  createError('id not match', ErrIDNotMatching, request, resp),
+                  createError(
+                    '[jsonrpc] id not match',
+                    ErrIDNotMatching,
+                    request,
+                    resp,
+                  ),
                 )
               } else {
                 resolve(resp)
