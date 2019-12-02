@@ -1,6 +1,7 @@
 /**
  * JSONRPC 2.0 实现
  * TODO: 测试用例
+ * TODO: 错误类
  */
 /* tslint:disable:no-any */
 import {
@@ -15,6 +16,11 @@ import extraResult from './interceptors/extraResult'
 export * from './type'
 export const ErrJsonParse = 0
 export const ErrIDNotMatching = 2
+
+export interface ClientOptions {
+  // 忽略协议错误
+  ignoreProtocolError?: boolean
+}
 
 function createError<P, R>(
   message: string,
@@ -35,7 +41,9 @@ export default class JSONRPC {
   // 拦截器
   private interceptor: RPCInterceptor[] = []
   private preInterceptor: RPCInterceptor[] = [extraResult]
-  public constructor(root: string) {
+  private option: ClientOptions
+  public constructor(root: string, option: ClientOptions = {}) {
+    this.option = option
     this.root = root
   }
 
@@ -100,7 +108,10 @@ export default class JSONRPC {
                     resp,
                   ),
                 )
-              } else if (resp.id !== request.id) {
+              } else if (
+                !this.option.ignoreProtocolError &&
+                resp.id !== request.id
+              ) {
                 reject(
                   createError(
                     '[jsonrpc] id not match',
