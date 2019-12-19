@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ESNext",
     "target": "es5",
     "lib": ["es6", "dom"],
     "sourceMap": false,
     "outDir": "lib",
     "allowJs": false,
-    "jsx": "react",
     "declaration": true,
     "moduleResolution": "node",
     "rootDir": "src",
@@ -23,13 +22,8 @@
     "strictFunctionTypes": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-    "downlevelIteration": true,
     "skipLibCheck": true,
-    "typeRoots": ["./typings", "./node_modules/@types"],
-    "baseUrl": ".",
-    "paths": {
-      "*": ["*", "src/*"]
-    }
+    "baseUrl": "."
   },
   "exclude": ["node_modules", "lib", "es"]
 }
