@@ -9,6 +9,7 @@ import {
   JSONRPCResponse,
   JSONRPCRequest,
   RequestError,
+  RequestOptions,
 } from './type'
 import compose from './compose'
 import extraResult from './interceptors/extraResult'
@@ -19,6 +20,7 @@ export const ErrNetwork = 0
 export const ErrJsonParse = 1
 export const ErrIDNotMatching = 2
 export const ErrCancel = 3
+export const ErrTimeout = 4
 
 export interface ClientOptions {
   // 忽略协议错误
@@ -53,6 +55,8 @@ export enum ErrorType {
   Client,
   Server,
 }
+
+const defaultOptions: RequestOptions = {}
 
 /**
  * 创建取消信号
@@ -98,6 +102,7 @@ export function getErrorType(err: any) {
 export default class JSONRPC {
   private root: string
   private networkErrorMessage: string = '当前网络不佳，请稍后再试'
+  private timeoutErrorMessage: string = '请求超时，请稍后再试'
   // 拦截器
   private interceptor: RPCInterceptor[] = []
   private preInterceptor: RPCInterceptor[] = [extraResult]
@@ -111,11 +116,19 @@ export default class JSONRPC {
     this.networkErrorMessage = message
   }
 
+  public setTimeoutErrorMessage(mesg: string) {
+    this.timeoutErrorMessage = mesg
+  }
+
   public addInterceptor(i: RPCInterceptor) {
     this.interceptor.push(i)
   }
 
-  public request<R, P = {}>(method: string, params?: P): Promise<R> {
+  public request<R, P = {}>(
+    method: string,
+    params?: P,
+    options?: RequestOptions,
+  ): Promise<R> {
     const id = Date.now()
     const request: JSONRPCRequest<any> = {
       jsonrpc: '2.0',
@@ -124,16 +137,20 @@ export default class JSONRPC {
       id,
     }
 
-    return this.rawRequest(request, true)
+    return this.rawRequest(request, true, options)
   }
 
-  public retry<R, P = {}>(request: JSONRPCRequest<P>): Promise<R> {
-    return this.rawRequest(request)
+  public retry<R, P = {}>(
+    request: JSONRPCRequest<P>,
+    options?: RequestOptions,
+  ): Promise<R> {
+    return this.rawRequest(request, undefined, options)
   }
 
   private rawRequest<R, P = {}>(
     request: JSONRPCRequest<P>,
     shouldExtraResult: boolean = false,
+    options: RequestOptions = defaultOptions,
   ): Promise<R> {
     // 拦截检查是否网路错误
     if (supportCheckOnline && !navigator.onLine) {
@@ -141,6 +158,8 @@ export default class JSONRPC {
         createError(this.networkErrorMessage, ErrNetwork, request),
       )
     }
+
+    const { timeout } = options
 
     const req = new XMLHttpRequest()
     let url = this.root
@@ -154,6 +173,10 @@ export default class JSONRPC {
       url += '&' + query
     }
 
+    if (timeout != null) {
+      req.timeout = timeout
+    }
+
     req.open('POST', url)
 
     const interceptors = shouldExtraResult
@@ -163,9 +186,20 @@ export default class JSONRPC {
 
     return fn(request, req, (finalRequest, xhr, next) => {
       return new Promise((resolve, reject) => {
+        let timeouted = false
         // 请求
         req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+
+        req.ontimeout = () => {
+          timeouted = true
+          reject(createError(this.timeoutErrorMessage, ErrTimeout, request))
+        }
+
         req.onreadystatechange = async () => {
+          if (timeouted) {
+            return
+          }
+
           // 响应处理
           if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
             try {

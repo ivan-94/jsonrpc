@@ -34,3 +34,10 @@ export type RPCInterceptor = (
   xhr: XMLHttpRequest,
   next: () => Promise<JSONRPCResponse<any>>,
 ) => Promise<JSONRPCResponse<any>>
+
+/**
+ * 请求参数
+ */
+export interface RequestOptions {
+  timeout?: number
+}

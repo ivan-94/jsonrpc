@@ -1,6 +1,6 @@
 {
   "name": "@gdjiami/jsonrpc",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "JSON RPC Client",
   "source": "src/index.tsx",
   "main": "lib/index.js",
