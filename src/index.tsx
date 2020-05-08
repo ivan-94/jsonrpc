@@ -25,6 +25,8 @@ export const ErrTimeout = 4
 export interface ClientOptions {
   // 忽略协议错误
   ignoreProtocolError?: boolean
+  // 检查浏览器是否在线
+  checkOnline?: boolean
 }
 
 function createError<P, R>(
@@ -153,7 +155,7 @@ export default class JSONRPC {
     options: RequestOptions = defaultOptions,
   ): Promise<R> {
     // 拦截检查是否网路错误
-    if (supportCheckOnline && !navigator.onLine) {
+    if (this.option.checkOnline && supportCheckOnline && !navigator.onLine) {
       return Promise.reject(
         createError(this.networkErrorMessage, ErrNetwork, request),
       )
